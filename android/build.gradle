@@ -5,25 +5,49 @@ def safeExtGet(prop, fallback) {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion safeExtGet('compileSdkVersion', 26)
-    buildToolsVersion safeExtGet('buildToolsVersion', "26.0.3")
+    // AGP 8+ 에 맞게 상향 (root 에서 내려오면 그 값 사용)
+    compileSdkVersion safeExtGet('compileSdkVersion', 35)
+    buildToolsVersion safeExtGet('buildToolsVersion', "35.0.0")
 
     defaultConfig {
-        minSdkVersion safeExtGet('minSdkVersion', 16)
-        targetSdkVersion safeExtGet('targetSdkVersion', 26)
+        minSdkVersion     safeExtGet('minSdkVersion', 24)
+        targetSdkVersion  safeExtGet('targetSdkVersion', 35)
         versionCode 1
         versionName "1.0"
     }
+
+    // AGP 8+ 에서는 buildToolsVersion 명시 불필요(제거)
+    // buildToolsVersion safeExtGet('buildToolsVersion', "26.0.3")
+
+    // 라이브러리 모듈은 namespace 반드시 지정 (Manifest package 와 맞추면 가장 안전)
+    // 모듈의 Java 패키지가 net.wowmaking.* 이므로 아래처럼 두세요.
+    namespace "net.wowmaking"
+
+    // (Optional) 자바 11/17 요구시 설정 – 프로젝트 설정에 맞춰 사용
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
     lintOptions {
         abortOnError false
     }
 }
 
 repositories {
+    google()
     mavenCentral()
 }
 
+configurations.all {
+    // support.* 끌고오지 않도록 차단
+    exclude group: "com.android.support"
+}
+
 dependencies {
-    implementation 'com.facebook.react:react-native:+'
-    implementation "com.android.support:exifinterface:${safeExtGet('supportLibVersion', '27.1.0')}"
+    // RN 버전 플러그인이 정한 버전 사용 (와일드카드 + 지양)
+    implementation "com.facebook.react:react-android"
+
+    // support:exifinterface -> AndroidX 로 치환
+    implementation "androidx.exifinterface:exifinterface:1.3.7"
 }
